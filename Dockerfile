@@ -1,11 +1,18 @@
-FROM node:20-bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends chromium ca-certificates fonts-liberation fonts-dejavu-core && rm -rf /var/lib/apt/lists/*
+FROM node:18-alpine
+
+# node-gyp va Python xatoligini to'g'rilash
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
+
 COPY package*.json ./
+
 RUN npm install --omit=dev --no-audit --no-fund
+
 COPY . .
-ENV NODE_ENV=production CHROMIUM_PATH=/usr/bin/chromium
-RUN mkdir -p /app/data /app/storage/photos /app/storage/certificates /app/storage/signatures && chown -R node:node /app
-USER node
+
+ENV NODE_ENV=production
+
 EXPOSE 3000
-CMD ["npm","start"]
+
+CMD ["npm", "start"]
