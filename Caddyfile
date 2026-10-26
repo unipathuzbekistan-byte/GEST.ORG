@@ -1,0 +1,4 @@
+{$GEST_DOMAIN} {
+  encode zstd gzip
+  reverse_proxy gest:3000
+}

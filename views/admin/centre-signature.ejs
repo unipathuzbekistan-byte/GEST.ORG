@@ -1,0 +1,31 @@
+<section class="page-hero compact"><div class="container"><h1>Authorised centre signature</h1><p><%= centre.name %> · <%= centre.code %> — GEST Headquarters approval</p></div></section>
+<section class="container section content-wide"><%- include('partials-nav') %>
+<div class="panel"><h2>Current authorised signatory</h2>
+<% if(current){ %>
+<p><strong><%= current.signatory_name %></strong> — <%= current.signatory_title %></p>
+<p><img src="/admin/centres/<%= centre.id %>/signature/image" alt="Approved signature of <%= current.signatory_name %>" style="max-width:350px;max-height:130px;border:1px solid #d7e0e6;padding:12px;background:white;"></p>
+<p class="muted">Approved: <%= current.created_at %>. This image is not available publicly.</p>
+<form method="post" action="/admin/centres/<%= centre.id %>/signature/retire" class="form-stack">
+<input type="hidden" name="_csrf" value="<%= csrf %>">
+<div class="field"><label for="reason">Reason for deactivation</label><input id="reason" name="reason" minlength="5" maxlength="500" required placeholder="Signatory has left the centre"></div>
+<button type="submit" class="btn btn-secondary">Deactivate this signature</button>
+</form>
+<% } else { %><p><strong>No authorised signature is currently active.</strong> New certificates for this centre cannot be issued until headquarters uploads an approved signature.</p><% } %>
+</div>
+<div class="panel"><h2><%= current?'Replace authorised signature':'Approve a centre signature' %></h2>
+<p>Only GEST headquarters can approve or replace signatures. Use a real authorised person's written signature, ideally a transparent PNG. JPEG is also supported. Maximum 1 MB. The image is privately stored; it is never exposed by a public static URL.</p>
+<form class="form-stack" method="post" enctype="multipart/form-data" action="/admin/centres/<%= centre.id %>/signature">
+<input type="hidden" name="_csrf" value="<%= csrf %>">
+<div class="form-grid">
+<div class="field"><label for="signatory_name">Full legal name of authorised signatory</label><input id="signatory_name" name="signatory_name" minlength="2" maxlength="120" autocomplete="off" required value="<%= current?.signatory_name||'' %>"></div>
+<div class="field"><label for="signatory_title">Role / job title</label><input id="signatory_title" name="signatory_title" minlength="3" maxlength="120" required value="<%= current?.signatory_title||'Authorised Test Centre Administrator' %>"></div>
+</div>
+<div class="field"><label for="signature">Signature image (JPEG or PNG, up to 1 MB)</label><input type="file" id="signature" name="signature" accept="image/jpeg,image/png" required><small>At least 120 × 25 pixels; use an image with a transparent background when possible.</small></div>
+<label style="display:flex;gap:9px;align-items:flex-start"><input type="checkbox" name="confirmed" required value="on"><span>I confirm I am authorised by GEST headquarters to approve this person's real signature for <%= centre.code %>.</span></label>
+<button class="btn btn-primary" type="submit">Approve &amp; save centre signature</button>
+</form></div>
+<div class="panel"><h2>Signature history</h2><p>Every issued certificate is bound to the exact approved signature version at the time of issue. Updating the centre signature never alters previously generated PDFs.</p>
+<div class="table-wrap"><table><thead><tr><th>Authorised person</th><th>Title</th><th>Approved at</th><th>Reports issued</th><th>Status</th></tr></thead><tbody>
+<% history.forEach(h=>{ %><tr><td><%= h.signatory_name %></td><td><%= h.signatory_title %></td><td><%= h.created_at %></td><td><%= h.issued_count %></td><td><%= current&&current.id===h.id?'Active':'Retired' %></td></tr><% }) %>
+<% if(!history.length){ %><tr><td colspan="5">No signatures have been approved yet.</td></tr><% } %>
+</tbody></table></div></div><p><a href="/admin/centres/<%= centre.id %>/edit" class="btn btn-secondary">Back to centre</a></p></section>

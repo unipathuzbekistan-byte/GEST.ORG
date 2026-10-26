@@ -1,0 +1,28 @@
+<section class="page-hero compact"><div class="container"><div class="eyebrow">GEST PAYMENT SANDBOX — TEST MODE ONLY</div><h1>Demo payment checkout</h1><p>This is a simulated payment. No bank, card, Click or Payme transaction takes place.</p></div></section>
+<section class="container section">
+<div class="alert alert-warning" role="alert"><strong>DEMO ONLY — NO REAL MONEY</strong> This sandbox is for testing booking, fee waivers and payment statuses. Do not enter any bank card details.</div>
+<div class="card-grid two"><div class="panel"><h2>Your booking</h2>
+<p><strong><%= booking.centre_name %></strong> (<%= booking.centre_code %>)</p>
+<p>Test: <%= booking.test_date %> at <%= booking.start_time %></p>
+<p>Booking: <%= booking.status %> · Payment: <strong><%= booking.payment_status %></strong></p>
+<% if(order){ %>
+<div class="table-wrap"><table><tbody>
+<tr><th>Exam fee</th><td><%= order.original_amount.toLocaleString('en-US') %> UZS</td></tr>
+<tr><th>Fee waiver</th><td>-<%= order.discount_amount.toLocaleString('en-US') %> UZS</td></tr>
+<tr><th>To pay (simulation)</th><td><strong><%= order.amount_due.toLocaleString('en-US') %> UZS</strong></td></tr>
+<tr><th>Sandbox status</th><td><span class="pill"><%= order.status.toUpperCase() %></span></td></tr>
+</tbody></table></div>
+<% }else{ %><div class="alert alert-success">This is an earlier booking, manually marked paid at the test centre. No sandbox charge is required.</div><% } %>
+<a href="/candidate" class="btn btn-secondary">Back to dashboard</a>
+</div><div class="panel"><h2>Test payment</h2>
+<% if(!order){ %><p>Payment recorded outside sandbox.</p>
+<% }else if(order.status==='waived'){ %><div class="alert alert-success"><strong>100% FEE WAIVER ACCEPTED</strong><p>Your simulated amount due is 0 UZS. Booking payment is recorded as paid.</p></div>
+<% }else if(order.status==='paid'){ %><div class="alert alert-success"><strong>SANDBOX PAYMENT SUCCESSFUL</strong><p>No real money was collected. Your booking is marked paid.</p></div>
+<% }else if(order.status==='failed'){ %><div class="alert alert-warning"><strong>SIMULATED PAYMENT DECLINED</strong><p>No money was taken. You may retry.</p></div><form method="post" action="/candidate/payment/<%= booking.id %>/retry"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-primary">Try again</button></form>
+<% }else{ %>
+<% if(!order.coupon_id){ %><form method="post" action="/candidate/payment/<%= booking.id %>/coupon" class="form-stack"><input type="hidden" name="_csrf" value="<%= csrf %>"><div class="field"><label for="coupon">Fee waiver coupon (optional)</label><input id="coupon" name="coupon" minlength="12" maxlength="32" autocomplete="off" placeholder="GEST-XXXX-XXXX-XXXX-XXXX" pattern="GEST-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}" aria-describedby="coupon-help"><small id="coupon-help">Only approved one-use codes issued through GEST Headquarters are accepted.</small></div><button class="btn btn-secondary">Apply coupon</button></form><hr><% } %>
+<p class="subdued">Simulate the payment result. No payment credentials or card details are collected.</p>
+<form method="post" action="/candidate/payment/<%= booking.id %>/simulate" class="form-stack"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="outcome" value="success"><button class="btn btn-primary">Simulate SUCCESS</button></form>
+<form method="post" action="/candidate/payment/<%= booking.id %>/simulate" class="form-stack"><input type="hidden" name="_csrf" value="<%= csrf %>"><input type="hidden" name="outcome" value="declined"><button class="btn btn-secondary">Simulate DECLINED</button></form>
+<% } %>
+</div></div></section>

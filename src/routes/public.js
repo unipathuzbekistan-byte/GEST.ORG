@@ -1,0 +1,22 @@
+const express=require('express'),crypto=require('crypto'),rateLimit=require('express-rate-limit');
+const {db,setting}=require('../db'),{mac,matches}=require('../identifiers'),{evaluateCertificate}=require('../verify');const {z}=require('../validation');
+const r=express.Router();const limiter=rateLimit({windowMs:15*60*1000,limit:12,standardHeaders:'draft-8',legacyHeaders:false,message:'Too many attempts. Please try again later.'});
+const pages=['about','format','scoring','faq','contact','privacy','terms'];
+r.get('/',(req,res)=>{const sessions=db.prepare("SELECT s.*,c.name centre_name,c.city,c.code,(s.capacity-(SELECT COUNT(*) FROM bookings b WHERE b.session_id=s.id AND b.status='booked')) remaining FROM sessions s JOIN centres c ON c.id=s.centre_id WHERE s.test_date>=date('now') AND s.status='open' AND c.active=1 ORDER BY s.test_date,s.start_time LIMIT 4").all();res.page('public/home',{title:'Global English Skills Test',sessions});});
+for(const pg of pages)r.get('/'+pg,(req,res)=>{const bands=db.prepare('SELECT * FROM cefr_bands ORDER BY min_score').all();res.page('public/'+pg,{title:pg[0].toUpperCase()+pg.slice(1),bands,contactEmail:setting('headquarters_email')});});
+r.get('/centres',(req,res)=>res.page('public/centres',{title:'Test centres',centres:db.prepare('SELECT * FROM centres WHERE active=1 ORDER BY country,city,name').all()}));
+r.get('/sessions',(req,res)=>{const centres=db.prepare('SELECT * FROM centres WHERE active=1 ORDER BY name').all();const selected=Number(req.query.centre||0);const sessions=db.prepare("SELECT s.*,c.name centre_name,c.code,c.city,(s.capacity-(SELECT COUNT(*) FROM bookings b WHERE b.session_id=s.id AND b.status='booked')) remaining FROM sessions s JOIN centres c ON c.id=s.centre_id WHERE s.test_date>=date('now') AND s.status='open' AND c.active=1 AND (?=0 OR c.id=?) ORDER BY s.test_date,s.start_time").all(selected,selected);res.page('public/sessions',{title:'Book a test',centres,sessions,selected});});
+function logAttempt(req,form,outcome){const secret=process.env.TOKEN_HASH_SECRET||'dev-audit-key';const hash=s=>crypto.createHmac('sha256',secret).update(String(s)).digest('hex');db.prepare('INSERT INTO verification_logs(ip_hash,form_hash,outcome) VALUES(?,?,?)').run(hash(req.ip),hash(form),outcome);}
+function perform(req,form,code){
+ let outcome='invalid',view=null;
+ const record=db.prepare(`SELECT cert.*,r.listening,r.reading,r.writing,r.speaking,r.overall,r.cefr,s.test_date,c.code centre_code,c.name centre_name,c.city,ca.family_name,ca.first_name,COALESCE(bi.official_photo_path,ca.photo_path) photo_path FROM certificates cert JOIN results r ON r.id=cert.result_id JOIN bookings b ON b.id=r.booking_id JOIN sessions s ON s.id=b.session_id JOIN centres c ON c.id=s.centre_id JOIN candidates ca ON ca.user_id=b.user_id LEFT JOIN booking_identity_checks bi ON bi.booking_id=b.id WHERE cert.form_number=?`).get(form);
+ outcome=evaluateCertificate(record,code);
+ if(record&&outcome!=='invalid')view=record;
+ logAttempt(req,form,outcome);
+ if(view&&outcome==='valid'&&view.photo_path){const fs=require('fs'),path=require('path');const p=path.resolve(__dirname,'..','..','storage','photos',view.photo_path);try{view.photoData='data:image/jpeg;base64,'+fs.readFileSync(p).toString('base64');}catch{}}
+ return {outcome,record:view};
+}
+r.get('/verify',(_,res)=>res.page('public/verify',{title:'Verify a result',verification:null}));
+r.post('/verify',limiter,(req,res)=>{const schema=z.object({form_number:z.string().trim().toUpperCase().regex(/^GEST-\d{4}-\d{5}$/),security_code:z.string().trim().toUpperCase().regex(/^[2-9A-HJ-KM-NP-Z]{4}(-[2-9A-HJ-KM-NP-Z]{4}){2}$/)});const parsed=schema.safeParse(req.body);if(!parsed.success){logAttempt(req,req.body?.form_number||'', 'invalid');return res.page('public/verify',{title:'Verify a result',verification:{outcome:'invalid'}});}const verification=perform(req,parsed.data.form_number,parsed.data.security_code);res.page('public/verify',{title:'Verify a result',verification});});
+r.get('/verify/:form',limiter,(req,res)=>{const parsed=z.object({form:z.string().regex(/^GEST-\d{4}-\d{5}$/),code:z.string().regex(/^[2-9A-HJ-KM-NP-Z]{4}(-[2-9A-HJ-KM-NP-Z]{4}){2}$/)}).safeParse({...req.params,code:req.query.code});const verification=parsed.success?perform(req,parsed.data.form,parsed.data.code):{outcome:'invalid'};if(!parsed.success)logAttempt(req,req.params.form,'invalid');res.page('public/verify',{title:'Verify a result',verification});});
+module.exports=r;

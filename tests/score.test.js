@@ -1,0 +1,7 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),os=require('os'),path=require('path');
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'gest-scores-'));process.env.DATABASE_PATH=path.join(root,'test.sqlite');
+const {overall,cefr,validateBands}=require('../src/score');
+test('rounded mean of four scores',()=>{assert.equal(overall([80,81,82,83]),82);assert.equal(overall([0,0,0,0]),0);assert.equal(overall([100,100,100,100]),100);assert.equal(overall([20,20,20,22]),21);});
+test('reject incomplete, fractional, negative or out-of-range scores',()=>{for(const scores of [[5,10,15],[-1,2,3,4],[0,10,20,101],[11.5,20,30,40],['15',20,30,40]])assert.throws(()=>overall(scores));});
+test('all default CEFR boundaries',()=>{const bands=[[0,'<A1'],[19,'<A1'],[20,'A1'],[34,'A1'],[35,'A2'],[49,'A2'],[50,'B1'],[64,'B1'],[65,'B2'],[79,'B2'],[80,'C1'],[91,'C1'],[92,'C2'],[100,'C2']];for(const [s,level] of bands)assert.equal(cefr(s),level);});
+test('invalid band gaps and overlaps rejected',()=>{assert.throws(()=>validateBands([{min_score:0,max_score:50}]));const good=[{min_score:0,max_score:19},{min_score:20,max_score:34},{min_score:35,max_score:49},{min_score:50,max_score:64},{min_score:65,max_score:79},{min_score:80,max_score:91},{min_score:92,max_score:100}];assert.equal(validateBands(good),true);assert.throws(()=>validateBands(good.map((r,i)=>i===3?{...r,min_score:51}:r)));});

@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>GEST Pilot Result Certificate</title>
+<style>
+@page{size:A4;margin:0}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif;color:#0d3158;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{position:relative;width:210mm;height:297mm;overflow:hidden;padding:19mm 18mm 14mm;background:#fff}
+.page:before{content:'PILOT';position:absolute;left:10mm;top:111mm;transform:rotate(-34deg);font-size:112px;line-height:1;font-weight:900;letter-spacing:18px;color:rgba(13,49,88,.055);z-index:0;pointer-events:none}
+.page>*{position:relative;z-index:1}
+.topbar{position:absolute;left:0;top:0;height:5mm;width:100%;background:linear-gradient(90deg,#c9a24b 0 36%,#0d3158 36% 100%)}
+.head{display:flex;align-items:center;justify-content:space-between;gap:16mm;padding:2mm 0 7mm;border-bottom:1.3pt solid #c9a24b}
+.brand img{width:59mm;max-height:28mm;object-fit:contain;object-position:left center}
+.brandtext{font-size:28pt;font-weight:900;letter-spacing:2px}
+.tagline{font-size:8pt;letter-spacing:1pt;color:#5a6b80}
+.headright{text-align:right;max-width:80mm}
+.eyebrow{font-size:10pt;font-weight:800;letter-spacing:1pt;color:#b0842a}
+h1{font-size:17pt;line-height:1.12;margin:3mm 0 2mm}
+.subtitle{font-size:8.5pt;color:#5a6b80;line-height:1.35}
+.notice-banner{margin:7mm 0 5mm;padding:4mm 5mm;border:1.5pt solid #b36b38;background:#fff4e9;color:#802f25;font-weight:900;font-size:12pt;letter-spacing:.65pt;text-align:center}
+.meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3mm;margin:0 0 6mm}
+.cell,.field{background:#eff3f6;padding:3.2mm;min-height:15mm;border:1px solid #d9e2e8}
+.label{display:block;font-size:7pt;color:#5a6b80;text-transform:uppercase;letter-spacing:.5pt;font-weight:800;margin-bottom:1.5mm}
+.value{display:block;font-size:11pt;font-weight:800;overflow-wrap:anywhere}
+.bar{background:#0d3158;color:white;padding:2mm 3mm;border-left:4mm solid #c9a24b;font-size:9pt;font-weight:900;text-transform:uppercase;letter-spacing:1pt;margin-bottom:3mm}
+.candidate{display:grid;grid-template-columns:1fr 37mm;gap:3mm;margin-bottom:6mm}
+.personal{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+.photo{width:37mm;height:47mm;border:1px solid #cfd9e1;object-fit:cover;object-position:center;background:#f3f5f7}
+.photo-placeholder{width:37mm;height:47mm;border:1px dashed #9caab8;display:grid;place-items:center;color:#5a6b80;font-size:9pt}
+.scores{display:grid;grid-template-columns:49mm 1fr;gap:4mm;margin-bottom:5mm}
+.overall{background:#0d3158;color:#fff;padding:6mm 4mm;text-align:center;min-height:47mm;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.overall strong{font-size:40pt;line-height:1.1}.overall small{font-size:8pt;letter-spacing:1pt}
+.skill-grid{display:grid;grid-template-columns:1fr 1fr;gap:3mm}
+.skill{background:#eff3f6;padding:4mm;min-height:22mm;border-bottom:2pt solid #c9a24b}
+.skill .label{margin:0}.skill strong{font-size:20pt}
+.comments{padding:4mm 5mm;min-height:32mm;background:#f4f6f8;border:1px solid #d8e0e8;font-size:9pt;line-height:1.42;color:#193952}
+.comments p{margin:0 0 2mm}
+.confidentiality{margin-top:4mm;border-top:1px solid #c9a24b;padding-top:4mm;display:flex;justify-content:space-between;gap:5mm;color:#5a6b80;font-size:8pt;line-height:1.45}
+.confidentiality strong{color:#0d3158}
+.bottom{position:absolute;bottom:4mm;left:18mm;right:18mm;font-size:7.3pt;color:#5a6b80;text-align:center;letter-spacing:.3pt}
+</style></head><body><main class="page">
+<div class="topbar"></div>
+<header class="head"><div class="brand"><% if(logoData){ %><img src="<%= logoData %>" alt="GEST"><% }else{ %><div class="brandtext">GEST</div><div class="tagline">GLOBAL ENGLISH SKILLS TEST</div><% } %></div>
+<div class="headright"><div class="eyebrow">GEST · PILOT TEST 001</div><h1>Pilot Result Certificate</h1><div class="subtitle">Individual diagnostic score record · Form <%= result.pilot_form %></div></div></header>
+<div class="notice-banner">PILOT RESULT · NOT AN OFFICIAL SCORE REPORT</div>
+<div class="meta"><div class="cell"><span class="label">Test centre</span><span class="value"><%= result.centre_code %></span></div><div class="cell"><span class="label">Test date</span><span class="value"><%= result.test_date %></span></div><div class="cell"><span class="label">Candidate number</span><span class="value"><%= result.candidate_number %></span></div></div>
+<div class="bar">Candidate details</div><div class="candidate"><div class="personal"><div class="field"><span class="label">Family name</span><span class="value"><%= result.family_name %></span></div><div class="field"><span class="label">First name</span><span class="value"><%= result.first_name %></span></div><div class="field"><span class="label">Centre name</span><span class="value"><%= result.centre_name %></span></div><div class="field"><span class="label">Pilot form</span><span class="value"><%= result.pilot_form %></span></div><div class="field"><span class="label">Result status</span><span class="value">Approved pilot result</span></div><div class="field"><span class="label">Approval date</span><span class="value"><%= publishedDate %></span></div></div>
+<div><% if(photoData){ %><img class="photo" src="<%= photoData %>" alt="Candidate photo"><% }else{ %><div class="photo-placeholder">Photo unavailable</div><% } %></div></div>
+<div class="bar">Diagnostic test results</div><div class="scores"><div class="overall"><small>OVERALL PILOT SCORE</small><strong><%= result.overall %></strong><small>OUT OF 100</small></div><div class="skill-grid"><% skills.forEach(([name,value])=>{ %><div class="skill"><span class="label"><%= name %></span><strong><%= value %></strong><span style="font-size:9pt"> / 100</span></div><% }) %></div></div>
+<div class="bar">Administrator comments</div><section class="comments"><p><%= notice %></p><% if(result.comments){ %><p><strong>Additional examiner comments:</strong> <%= result.comments %></p><% } %></section>
+<div class="confidentiality"><div><strong>Result use:</strong> This is a diagnostic pilot document only. It is not valid for admissions, immigration, employment certification or formal CEFR proof.</div></div>
+<div class="bottom">GEST · ASSESS · ACHIEVE · CONNECT<br>PILOT DOCUMENT — NOT VALID FOR OFFICIAL CERTIFICATION</div>
+</main></body></html>

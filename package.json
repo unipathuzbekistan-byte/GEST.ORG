@@ -1,0 +1,37 @@
+{
+  "name": "gest-website",
+  "version": "1.4.2",
+  "private": true,
+  "description": "GEST Global English Skills Test management and verification portal",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node scripts/start.js",
+    "dev": "node --watch src/app.js",
+    "seed": "node scripts/seed.js",
+    "test": "node --test tests/*.test.js",
+    "test:flow": "node tests/flow.js",
+    "backup": "node scripts/backup.js",
+    "seed:pilot-demo": "node scripts/seed-pilot-demo.js",
+    "retention:preview": "node scripts/purge-identity-documents.js",
+    "retention:apply": "node scripts/purge-identity-documents.js --apply",
+    "test:sandbox": "node --test tests/payment-sandbox.test.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "express-session": "^1.18.2",
+    "helmet": "^8.1.0",
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.9",
+    "puppeteer-core": "^24.25.0",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.34.4",
+    "zod": "^4.1.12",
+    "bcryptjs": "^3.0.3"
+  }
+}
