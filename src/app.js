@@ -2,7 +2,10 @@ const path=require('path'),fs=require('fs'),express=require('express'),helmet=re
 require('dotenv').config({path:path.join(__dirname,'..','.env'),quiet:true});
 const {db}=require('./db'),{SQLiteSessionStore}=require('./session-store'),{csrf,handleErrors}=require('./middleware'),{translate}=require('./i18n');
 if(process.env.NODE_ENV==='production'&&(!process.env.SESSION_SECRET||!process.env.VERIFICATION_HMAC_SECRET||!process.env.TOKEN_HASH_SECRET||!/^([a-fA-F0-9]{64})$/.test(process.env.IDENTITY_ENCRYPTION_KEY||'')))throw Error('Production secrets including ID-document encryption key are required');
-const app=express();app.disable('x-powered-by');if(process.env.TRUST_PROXY==='true')app.set('trust proxy',1);
+const app=express();
+// Pilot-only remote persistence. Install the response barrier before express-session.
+app.use(require('./cloud-snapshot').responseBarrier);
+app.disable('x-powered-by');if(process.env.TRUST_PROXY==='true')app.set('trust proxy',1);
 app.use(helmet({referrerPolicy:{policy:'no-referrer'},contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'","https://fonts.googleapis.com"],fontSrc:["'self'","https://fonts.gstatic.com"],imgSrc:["'self'","data:","blob:"],connectSrc:["'self'"],objectSrc:["'none'"],frameAncestors:["'none'"],baseUri:["'self'"],formAction:["'self'"]}}}));
 app.use(express.static(path.join(__dirname,'..','public'),{maxAge:'1d'}));app.use(express.urlencoded({extended:false,limit:'25kb'}));app.use(express.json({limit:'25kb'}));
 // Only readiness information, no candidate or system data.
