@@ -45,14 +45,27 @@ async function restore(){
  const url=objectURL(c)+'?cache-bust='+Date.now();
  let result;
  try{result=await fetchWithTimeout(url,{headers:headers(c.key)});}catch(e){throw Error('GEST mirror cannot access Supabase: '+e.message);}
- if(result.status===404){
-   if(process.env.GEST_SUPABASE_ALLOW_EMPTY_START==='true'){
-     console.warn('GEST mirror: no remote snapshot. Explicitly allowing fresh demonstration database.');
-     return false;
+ // Supabase Storage currently returns HTTP 400 with {statusCode:"404",code:"NoSuchKey"}
+ // for a missing object. Accept ONLY that specific missing-object response for a
+ // one-time fresh demo start. Keep other errors fatal (bad key, bad bucket, outage).
+ if(!result.ok){
+   const detail=(await result.text()).slice(0,2048);
+   let isMissing = result.status===404;
+   if(result.status===400){
+     try{
+       const payload=JSON.parse(detail);
+       isMissing=payload && payload.code==='NoSuchKey' && String(payload.statusCode)==='404';
+     }catch(_ignored){}
    }
-   throw Error('GEST mirror: remote snapshot not found. To initialise a NEW demo DB once, set GEST_SUPABASE_ALLOW_EMPTY_START=true.');
+   if(isMissing){
+     if(process.env.GEST_SUPABASE_ALLOW_EMPTY_START==='true'){
+       console.warn('GEST mirror: no remote snapshot yet. Allowing ONE fresh DEMO database start.');
+       return false;
+     }
+     throw Error('GEST mirror: remote snapshot missing; refusing empty startup to protect data.');
+   }
+   throw Error('GEST mirror restore failed: HTTP '+result.status+' '+detail.slice(0,160));
  }
- if(!result.ok)throw Error('GEST mirror restore failed: HTTP '+result.status+' '+(await result.text()).slice(0,160));
  const archive=await result.arrayBuffer();
  if(archive.byteLength>48*1024*1024)throw Error('GEST mirror: snapshot exceeds 48 MB pilot safeguard');
  const temp=await fsp.mkdtemp(path.join(os.tmpdir(),'gest-restore-'));
