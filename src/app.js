@@ -12,7 +12,7 @@ app.set('view engine','ejs');app.set('views',path.join(__dirname,'..','views'));
 app.use((req,res,next)=>{
  // Forget language cookies from earlier multilingual versions.
  if (/(?:^|;\s*)gest_lang=/.test(req.headers.cookie||'')) res.clearCookie('gest_lang',{path:'/'});
- res.locals.pilotMode=process.env.NODE_ENV==='production'&&process.env.GEST_PUBLIC_PILOT_MODE!=='false';res.locals.locale='en';res.locals.t=key=>translate('en',key);res.locals.hasLogo=fs.existsSync(path.join(__dirname,'..','public','img','logo.png'));
+ res.locals.locale='en';res.locals.t=key=>translate('en',key);res.locals.hasLogo=fs.existsSync(path.join(__dirname,'..','public','img','logo.png'));
  res.locals.user=req.session.userId?db.prepare('SELECT id,email,role,centre_id,verified,disabled FROM users WHERE id=?').get(req.session.userId):null;
  res.locals.flash=req.session.flash;delete req.session.flash;
  res.page=(view,data={})=>{const locals={...res.locals,csrf:typeof req.csrfToken==='function'?req.csrfToken():(req.session.csrf||''),...data};ejs.renderFile(path.join(__dirname,'..','views',view+'.ejs'),locals,(err,body)=>{if(err)return next(err);res.render('shell',{...locals,body});});};

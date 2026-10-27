@@ -9,6 +9,3 @@
 .alert-warning strong{font-weight:800}
 .panel code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;white-space:nowrap;letter-spacing:.04em;font-weight:700;color:#0d3158}
 .panel hr{border:0;border-top:1px solid #d8e1e8;margin:22px 0}
-
-/* Visible public pilot status; no official recognition claimed. */
-.gest-pilot-banner{background:#fff1cc;color:#472f00;border-bottom:2px solid #c9a24b;text-align:center;font-weight:700;font-size:.875rem;padding:11px 18px;line-height:1.45}

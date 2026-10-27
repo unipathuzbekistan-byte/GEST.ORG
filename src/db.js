@@ -1,6 +1,6 @@
 const path=require('path'),fs=require('fs'),Database=require('better-sqlite3');
 require('dotenv').config({path:path.join(__dirname,'..','.env'),quiet:true});
-const filepath=path.resolve(__dirname,'..',process.env.DATABASE_PATH||'./data/gest.sqlite');
+const filepath=path.resolve(__dirname,'..',process.env.DATABASE_PATH||(process.env.NODE_ENV==='production'?'./storage/db/gest.sqlite':'./data/gest.sqlite'));
 fs.mkdirSync(path.dirname(filepath),{recursive:true});
 const db=new Database(filepath); db.pragma('journal_mode = WAL');db.pragma('foreign_keys = ON');db.pragma('busy_timeout = 5000');
 db.exec(fs.readFileSync(path.join(__dirname,'schema.sql'),'utf8'));
